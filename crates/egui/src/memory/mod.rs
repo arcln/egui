@@ -140,6 +140,7 @@ impl Default for Memory {
     }
 }
 
+#[expect(dead_code)]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum FocusDirection {
     /// Select the widget closest above the current focused widget.
@@ -561,12 +562,12 @@ impl Focus {
         self.focused_widget.as_ref().map(|w| w.id)
     }
 
-    fn begin_pass(&mut self, new_input: &crate::data::input::RawInput) {
+    fn begin_pass(&mut self, _new_input: &crate::data::input::RawInput) {
         self.id_previous_frame = self.focused();
         if let Some(id) = self.id_next_frame.take() {
             self.focused_widget = Some(FocusWidget::new(id));
         }
-        let event_filter = self.focused_widget.map(|w| w.filter).unwrap_or_default();
+        // let event_filter = self.focused_widget.map(|w| w.filter).unwrap_or_default();
 
         #[cfg(feature = "accesskit")]
         {
@@ -575,51 +576,51 @@ impl Focus {
 
         self.focus_direction = FocusDirection::None;
 
-        for event in &new_input.events {
-            if !event_filter.matches(event) {
-                if let crate::Event::Key {
-                    key,
-                    pressed: true,
-                    modifiers,
-                    ..
-                } = event
-                {
-                    if let Some(cardinality) = match key {
-                        crate::Key::ArrowUp => Some(FocusDirection::Up),
-                        crate::Key::ArrowRight => Some(FocusDirection::Right),
-                        crate::Key::ArrowDown => Some(FocusDirection::Down),
-                        crate::Key::ArrowLeft => Some(FocusDirection::Left),
+        // for event in &new_input.events {
+        //     if !event_filter.matches(event) {
+        //         if let crate::Event::Key {
+        //             key,
+        //             pressed: true,
+        //             modifiers,
+        //             ..
+        //         } = event
+        //         {
+        //             if let Some(cardinality) = match key {
+        //                 crate::Key::ArrowUp => Some(FocusDirection::Up),
+        //                 crate::Key::ArrowRight => Some(FocusDirection::Right),
+        //                 crate::Key::ArrowDown => Some(FocusDirection::Down),
+        //                 crate::Key::ArrowLeft => Some(FocusDirection::Left),
 
-                        crate::Key::Tab => {
-                            if modifiers.shift {
-                                Some(FocusDirection::Previous)
-                            } else {
-                                Some(FocusDirection::Next)
-                            }
-                        }
-                        crate::Key::Escape => {
-                            self.focused_widget = None;
-                            Some(FocusDirection::None)
-                        }
-                        _ => None,
-                    } {
-                        self.focus_direction = cardinality;
-                    }
-                }
-            }
+        //                 crate::Key::Tab => {
+        //                     if modifiers.shift {
+        //                         Some(FocusDirection::Previous)
+        //                     } else {
+        //                         Some(FocusDirection::Next)
+        //                     }
+        //                 }
+        //                 crate::Key::Escape => {
+        //                     self.focused_widget = None;
+        //                     Some(FocusDirection::None)
+        //                 }
+        //                 _ => None,
+        //             } {
+        //                 self.focus_direction = cardinality;
+        //             }
+        //         }
+        //     }
 
-            #[cfg(feature = "accesskit")]
-            {
-                if let crate::Event::AccessKitActionRequest(accesskit::ActionRequest {
-                    action: accesskit::Action::Focus,
-                    target,
-                    data: None,
-                }) = event
-                {
-                    self.id_requested_by_accesskit = Some(*target);
-                }
-            }
-        }
+        //     #[cfg(feature = "accesskit")]
+        //     {
+        //         if let crate::Event::AccessKitActionRequest(accesskit::ActionRequest {
+        //             action: accesskit::Action::Focus,
+        //             target,
+        //             data: None,
+        //         }) = event
+        //         {
+        //             self.id_requested_by_accesskit = Some(*target);
+        //         }
+        //     }
+        // }
     }
 
     pub(crate) fn end_pass(&mut self, used_ids: &IdMap<Rect>) {
